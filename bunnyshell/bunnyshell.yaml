@@ -1,0 +1,235 @@
+kind: Environment
+name: django-quickstack
+type: primary
+tags: bunnyshell-hackathon
+urlHandle: djangoquickstack
+components:
+    -
+        kind: Database
+        name: db
+        dockerCompose:
+            environment:
+                POSTGRES_DB: postgres
+                POSTGRES_PASSWORD: postgres
+                POSTGRES_USER: postgres
+            image: 'postgres:13.0-alpine'
+            restart: unless-stopped
+            ports:
+                - '5432:5432'
+        volumes:
+            -
+                name: postgres-data
+                mount: /var/lib/postgresql/data
+                subPath: ''
+    -
+        kind: Service
+        name: elasticsearch
+        dockerCompose:
+            image: launcher.gcr.io/google/elasticsearch2
+            ports:
+                - '9200:9200'
+                - '9300:9300'
+        hosts:
+            -
+                hostname: 'elasticsearch-{{ env.base_domain }}'
+                path: /
+                servicePort: 9200
+    -
+        kind: Application
+        name: flower
+        gitRepo: 'https://github.com/ksh7/dqs.git'
+        gitBranch: main
+        gitApplicationPath: /
+        dockerCompose:
+            build:
+                context: .
+                dockerfile: ./docker/backend/Dockerfile
+            entrypoint:
+                - /app/docker/backend/flower-entrypoint.sh
+            environment:
+                CELERY_BROKER_URL: 'redis://redis:6379/0'
+                CELERY_RESULT_BACKEND: 'redis://redis:6379/0'
+                DEBUG: 'True'
+                FLOWER_PORT: '5555'
+            ports:
+                - '5555:5555'
+            restart: unless-stopped
+        hosts:
+            -
+                hostname: 'flower-{{ env.base_domain }}'
+                path: /
+                servicePort: 5555
+        volumes:
+            -
+                name: static-volume
+                mount: /app/backend/staticfiles
+                subPath: ''
+    -
+        kind: Application
+        name: frontend
+        gitRepo: 'https://github.com/ksh7/dqs.git'
+        gitBranch: main
+        gitApplicationPath: /
+        dockerCompose:
+            build:
+                context: .
+                dockerfile: ./docker/frontend/Dockerfile
+            entrypoint:
+                - /app/docker/frontend/react-entrypoint.sh
+            ports:
+                - '3005:3005'
+            restart: unless-stopped
+            stdin_open: true
+        hosts:
+            -
+                hostname: 'frontend-{{ env.base_domain }}'
+                path: /
+                servicePort: 3005
+        volumes:
+            -
+                name: frontend-data
+                mount: /app/build
+                subPath: ''
+    -
+        kind: Service
+        name: grafana
+        dockerCompose:
+            environment:
+                GF_DASHBOARDS_JSON_ENABLED: 'true'
+                GF_USERS_ALLOW_SIGN_UP: 'false'
+            image: grafana/grafana
+            ports:
+                - '3000:3000'
+        hosts:
+            -
+                hostname: 'grafana-{{ env.base_domain }}'
+                path: /
+                servicePort: 3000
+        volumes:
+            -
+                name: graf-data
+                mount: /var/lib/grafana
+                subPath: ''
+    -
+        kind: Service
+        name: nginx
+        dockerCompose:
+            image: 'nginx:1.23-alpine'
+            ports:
+                - '80:80'
+            restart: always
+        hosts:
+            -
+                hostname: 'nginx-{{ env.base_domain }}'
+                path: /
+                servicePort: 80
+        volumes:
+            -
+                name: static-volume
+                mount: /app/backend/staticfiles
+                subPath: ''
+    -
+        kind: Service
+        name: prometheus
+        dockerCompose:
+            image: prom/prometheus
+            ports:
+                - '9090:9090'
+        hosts:
+            -
+                hostname: 'prometheus-{{ env.base_domain }}'
+                path: /
+                servicePort: 9090
+    -
+        kind: Service
+        name: redis
+        dockerCompose:
+            image: 'redis:7.0.5-alpine'
+            restart: unless-stopped
+            ports:
+                - '6379:6379'
+        hosts:
+            -
+                hostname: 'redis-{{ env.base_domain }}'
+                path: /
+                servicePort: 6379
+    -
+        kind: Application
+        name: server
+        gitRepo: 'https://github.com/ksh7/dqs.git'
+        gitBranch: main
+        gitApplicationPath: /
+        dockerCompose:
+            build:
+                context: .
+                dockerfile: ./docker/backend/Dockerfile
+            entrypoint:
+                - /app/docker/backend/server-entrypoint.sh
+            environment:
+                CELERY_BROKER_URL: 'redis://redis:6379/0'
+                CELERY_RESULT_BACKEND: 'redis://redis:6379/0'
+                DEBUG: 'True'
+                DJANGO_DB: postgresql
+                POSTGRES_HOST: db
+                POSTGRES_NAME: postgres
+                POSTGRES_PASSWORD: postgres
+                POSTGRES_PORT: '5432'
+                POSTGRES_USER: postgres
+            restart: unless-stopped
+            ports:
+                - '8000:8000'
+        hosts:
+            -
+                hostname: 'server-{{ env.base_domain }}'
+                path: /
+                servicePort: 8000
+        volumes:
+            -
+                name: static-volume
+                mount: /app/backend/staticfiles
+                subPath: ''
+    -
+        kind: Application
+        name: worker
+        gitRepo: 'https://github.com/ksh7/dqs.git'
+        gitBranch: main
+        gitApplicationPath: /
+        dockerCompose:
+            build:
+                context: .
+                dockerfile: ./docker/backend/Dockerfile
+            entrypoint:
+                - /app/docker/backend/worker-entrypoint.sh
+            environment:
+                CELERY_BROKER_URL: 'redis://redis:6379/0'
+                CELERY_RESULT_BACKEND: 'redis://redis:6379/0'
+                DEBUG: 'True'
+                DJANGO_DB: postgresql
+                POSTGRES_HOST: db
+                POSTGRES_NAME: postgres
+                POSTGRES_PASSWORD: postgres
+                POSTGRES_PORT: '5432'
+                POSTGRES_USER: postgres
+            restart: unless-stopped
+        volumes:
+            -
+                name: static-volume
+                mount: /app/backend/staticfiles
+                subPath: ''
+volumes:
+    -
+        name: postgres-data
+        size: 1Gi
+        type: disk
+    -
+        name: static-volume
+        size: 1Gi
+        type: network
+    -
+        name: frontend-data
+        size: 1Gi
+        type: disk
+    -
+        name: graf-data
+        size: 1Gi
+        type: disk

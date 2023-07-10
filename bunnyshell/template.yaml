@@ -1,0 +1,31 @@
+name: "Django-QuickStack: Django + Postgres SQL +  Redis + Celery + Flower + ElasticSearch + Prometheus + Grafana + Nginx + NodeJS + ReactJS"
+description: Django-QuickStack for Bunnyshell hackathon submission
+tags: [ bunnyshell-hackathon, django, postgres, redis, celery, flower, elasticsearch, prometheus, grafana, nginx, nodejs, reactjs]
+icons: [django, postgres, redis, celery, flower, elasticsearch, prometheus, grafana, nginx, nodejs, reactjs]
+stack:
+  packages:
+    - name: Django
+      version: '4.2.3'
+    - name: PostgreSQL
+      version: '13'
+    - name: Redis
+      version: '7.0.5'
+    - name: Celery
+      version: '5.3.1'
+    - name: Flower
+      version: '2.0.0'
+    - name: 'Django Rest Framework'
+      version: '3.14'
+    - name: ElasticSearch
+      version: '8'
+    - name: Nginx
+      version: '1.23'
+    - name: Prometheus
+      version: '2.43'
+    - name: Grafana
+      version: '10.0'
+    - name: NodeJS
+      version: '18'
+    - name: ReactJS
+      version: '18.2.0'
+discoverable: true
