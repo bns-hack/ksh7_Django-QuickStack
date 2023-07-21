@@ -2,7 +2,6 @@ kind: Environment
 name: django-quickstack
 type: primary
 tags: bunnyshell-hackathon
-urlHandle: djangoquickstack
 components:
     -
         kind: Database
@@ -37,7 +36,7 @@ components:
     -
         kind: Application
         name: flower
-        gitRepo: 'https://github.com/ksh7/dqs.git'
+        gitRepo: 'https://github.com/bns-hack/ksh7_dqs.git'
         gitBranch: main
         gitApplicationPath: /
         dockerCompose:
@@ -67,7 +66,7 @@ components:
     -
         kind: Application
         name: frontend
-        gitRepo: 'https://github.com/ksh7/dqs.git'
+        gitRepo: 'https://github.com/bns-hack/ksh7_dqs.git'
         gitBranch: main
         gitApplicationPath: /
         dockerCompose:
@@ -156,7 +155,7 @@ components:
     -
         kind: Application
         name: server
-        gitRepo: 'https://github.com/ksh7/dqs.git'
+        gitRepo: 'https://github.com/bns-hack/ksh7_dqs.git'
         gitBranch: main
         gitApplicationPath: /
         dockerCompose:
@@ -191,7 +190,7 @@ components:
     -
         kind: Application
         name: worker
-        gitRepo: 'https://github.com/ksh7/dqs.git'
+        gitRepo: 'https://github.com/bns-hack/ksh7_dqs.git'
         gitBranch: main
         gitApplicationPath: /
         dockerCompose:
